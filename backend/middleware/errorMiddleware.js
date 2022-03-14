@@ -1,3 +1,5 @@
+
+//for overwriting the default express error handler
 const errorHandler = (err, req, res, next) => {
   const statusCode = res.statusCode ? res.statusCode : 500
 
