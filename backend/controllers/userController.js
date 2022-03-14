@@ -7,7 +7,7 @@ const User = require('../models/userModel')
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body
+  const { name, email, password, userType } = req.body
 
   if (!name || !email || !password) {
     res.status(400)
@@ -22,6 +22,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // Hash password
+  //we need to generate salt to hash the password
   const salt = await bcrypt.genSalt(10)
   const hashedPassword = await bcrypt.hash(password, salt)
 
@@ -30,6 +31,7 @@ const registerUser = asyncHandler(async (req, res) => {
     name,
     email,
     password: hashedPassword,
+    userType,
   })
 
   if (user) {
@@ -37,6 +39,7 @@ const registerUser = asyncHandler(async (req, res) => {
       _id: user.id,
       name: user.name,
       email: user.email,
+      userType: user.userType,
       token: generateToken(user._id),
     })
   } else {

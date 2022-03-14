@@ -15,7 +15,12 @@ const userSchema = mongoose.Schema(
       type: String,
       required: [true, 'Please add a password'],
     },
+    userType: {
+      type: String,
+      enum : ['driver','admin','payment_exec'],
+      default: 'admin'
   },
+  }, 
   {
     timestamps: true,
   }
