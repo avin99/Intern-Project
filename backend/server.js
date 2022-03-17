@@ -25,7 +25,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 
 //i.e. if we hit this route we will we directed to this route and accordingly code will get executed
-app.use('/api/goals',require('./routes/goalRoutes'))
+app.use('/api/trips',require('./routes/tripRoutes'))
 app.use('/api/users',require('./routes/userRoutes'))
 
 //after the routes writing this will overwrite the default errorhandler

@@ -18,7 +18,7 @@ const userSchema = mongoose.Schema(
     userType: {
       type: String,
       enum : ['driver','admin','payment_exec'],
-      default: 'admin'
+      default: 'driver'
   },
   }, 
   {
