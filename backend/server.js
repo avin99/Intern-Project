@@ -11,6 +11,11 @@ const dotenv = require('dotenv').config()
 const { errorHandler } = require('./middleware/errorMiddleware')
 
 const connectDB = require('./config/db')
+//const schedule = require('node-schedule')
+
+// schedule.scheduleJob('*/2 * * * * *',()=>{
+//     console.log("Running")
+//   })
 
 //Its the port we want our server to run on
 const port = process.env.PORT || 6000
@@ -24,7 +29,7 @@ const app = express()
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 
-//i.e. if we hit this route we will we directed to this route and accordingly code will get executed
+//i.e. if we hit this route we will we directed to these files and accordingly code will get executed
 app.use('/api/trips',require('./routes/tripRoutes'))
 app.use('/api/users',require('./routes/userRoutes'))
 

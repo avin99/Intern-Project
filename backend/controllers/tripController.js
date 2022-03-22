@@ -6,6 +6,12 @@ const Goal = require('../models/goalModel')
 const User = require('../models/userModel')
 const POD = require('../models/podModel')
 const { default: mongoose } = require('mongoose')
+
+// const schedule = require('node-schedule')
+
+// schedule.scheduleJob('*/20 * * * * *',()=>{
+//     console.log("Running")
+//   })
 // @desc    Get goals 
 // @route   GET /api/goals
 // @access  Private
@@ -62,6 +68,7 @@ const endTrip = asyncHandler(async (req, res) => {
 
 const uploads = asyncHandler(async (req, res) => {
   
+  
   const upload = await POD.find()
   //const goals = await Goal.find({ text: "text by nirbhay 2" })
   //console.log(goals)
@@ -69,12 +76,30 @@ const uploads = asyncHandler(async (req, res) => {
 })
 
 const podStatus = asyncHandler(async (req, res) => {
-  const pod = await POD.findById(req.params.id)
+  //const pod = await POD.findById(req.params.id)
+  const { status } = req.body;
+  console.log(status)
+if(status != "approved" && status != "rejected"){
+  throw new Error('Please add a valid status')
+}
+
+// const checkStatus = await POD.findOne({"status": req.body.status})
+
+// console.log(checkStatus)
+
+//   if(checkStatus.status == "approved"){
+//     return res.json({message : "status is already updated"})
+  //}
+  
   const updatedStatus = await POD.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
   })
 
   res.status(200).json(updatedStatus)
+  
+  
+  
+  
   // res.send({
   //   success:true,
   //   message:`This trip has been ${req.body.text}!`,
