@@ -5,6 +5,7 @@ const asyncHandler = require('express-async-handler')
 const Goal = require('../models/goalModel')
 const User = require('../models/userModel')
 const POD = require('../models/podModel')
+const Ledger = require('../models/ledgerModel')
 const { default: mongoose } = require('mongoose')
 
 // const schedule = require('node-schedule')
@@ -25,19 +26,20 @@ const gettrips = asyncHandler(async (req, res) => {
 
 const startTrip = asyncHandler(async (req, res) => {
   //console.log(req.user)
-  const goals = await Goal.find({ user: req.user.id })
-  //console.log("hey")
-  //const goals = await Goal.find({ text: "text by nirbhay 2" })
- // console.log(goals)
-  const searchGoal = await Goal.findOne({"text": req.body.text})
-  if(!searchGoal)throw new Error('Trip is not assigned yet')
+  
 
-  //return.status(200).json(req.body.text)
-  //console.log(searchGoal.user.text)
-  //res.status(200).json(searchGoal)
+  const trip = await Goal.findById(req.params.id)
+
+  if (!trip) {
+    res.status(400)
+    throw new Error('Trip is not assigned yet')
+  }
+  //console.log(trip)
+  const currentUser = await User.findOne({_id:trip.user}) 
+  //console.log(currentUser)
   res.send({
     success:true,
-    message:`${req.body.text} has been processed!`
+    message:`Trip by ${currentUser.name} with name ${trip.text} has been processed!`
   })
 })
 
@@ -46,24 +48,27 @@ const endTrip = asyncHandler(async (req, res) => {
   //const goals = await Goal.find({ user: req.user.id })
   
   
-  const searchGoal = await Goal.findOne({"text": req.body.text})
-  //console.log(searchGoal)
-  if(!searchGoal)throw new Error('Trip is not assigned')
+  const trip = await Goal.findById(req.params.id)
 
-  //return.status(200).json(req.body.text)
-  //console.log(searchGoal.user.text)
-  //res.status(200).json(searchGoal)
+  if (!trip) {
+    res.status(400)
+    throw new Error('Trip is not assigned yet')
+  }
+  
    const Pod = await POD.create({
-     trip_id:new mongoose.Types.ObjectId(),
+     trip_id:trip._id,
      pod:req.file.path,
      status:req.body.status,
 
    })
-  res.send({
-    success:true,
-    message:`${req.body.text} has been ended!`,
-    Pod
-  })
+   
+   const currentUser = await User.findOne({_id:trip.user}) 
+   //console.log(currentUser)
+   res.send({
+     success:true,
+     message:`Trip by ${currentUser.name} with name ${trip.text} has been ended!`,
+     Pod
+   })
 })
 
 const uploads = asyncHandler(async (req, res) => {
@@ -75,27 +80,50 @@ const uploads = asyncHandler(async (req, res) => {
   res.status(200).json(upload)
 })
 
+const ledgers = asyncHandler(async (req, res) => {
+  
+  
+  const ledger = await Ledger.find()
+  //const goals = await Goal.find({ text: "text by nirbhay 2" })
+  //console.log(goals)
+  res.status(200).json(ledger)
+})
+
 const podStatus = asyncHandler(async (req, res) => {
   //const pod = await POD.findById(req.params.id)
-  const { status } = req.body;
+  const { email,status } = req.body;
   console.log(status)
 if(status != "approved" && status != "rejected"){
   throw new Error('Please add a valid status')
 }
+const pods = await POD.findById(req.params.id)
+//console.log(pods)
+const trip = await Goal.findOne({_id:pods.trip_id}) 
+console.log(trip.user)
 
-// const checkStatus = await POD.findOne({"status": req.body.status})
+// const check = await User.find({ _id: trip.user })
+// console.log(check)
 
-// console.log(checkStatus)
+  const ledger = await Ledger.create({
+    user_id:trip.user,
+    Type:req.body.type,
+  })
 
-//   if(checkStatus.status == "approved"){
-//     return res.json({message : "status is already updated"})
-  //}
-  
   const updatedStatus = await POD.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
   })
-
-  res.status(200).json(updatedStatus)
+  if(status!="rejected")
+  res.send({
+    success:true,
+    updatedStatus,
+    ledger,
+  })
+  else 
+  res.send({
+    success:true,
+    updatedStatus,
+  })
+  //res.status(200).json(updatedStatus)
   
   
   
@@ -191,4 +219,5 @@ module.exports = {
   endTrip,
   uploads,
   podStatus,
+  ledgers,
 }
