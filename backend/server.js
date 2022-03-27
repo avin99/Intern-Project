@@ -9,10 +9,8 @@ const dotenv = require('dotenv').config()
 
 //using our own errorHandler
 const { errorHandler } = require('./middleware/errorMiddleware')
-
 const connectDB = require('./config/db')
-const asyncHandler = require('express-async-handler')
-
+const {payments}= require('./cron')
 //Its the port we want our server to run on
 const port = process.env.PORT || 6000
 
@@ -31,22 +29,8 @@ app.use('/api/users',require('./routes/userRoutes'))
 
 //after the routes writing this will overwrite the default errorhandler
 app.use(errorHandler)
-
+payments()
 //with our app object we can call our listen method
 // app.listen() function is used to bind and listen the connections on the specified host and port. 
-
-const POD = require('./models/podModel')
-const schedule = require('node-schedule')
-
-schedule.scheduleJob('*/200 * * * * *',()=>{
-    //console.log("Running")
-    const getStatus = asyncHandler(async (req, res) => {
-  
-        const pods = await POD.findOne({"status" : "created"})
-        //console.log(pods)
-        //return pods
-      })
-      //console.log(getStatus())
-  })
 
 app.listen(port, () => console.log(`server started on port ${port} `))

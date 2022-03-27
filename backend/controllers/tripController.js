@@ -6,6 +6,8 @@ const Goal = require('../models/goalModel')
 const User = require('../models/userModel')
 const POD = require('../models/podModel')
 const Ledger = require('../models/ledgerModel')
+const PR = require('../models/prModel')
+const schedule = require('node-schedule')
 const { default: mongoose } = require('mongoose')
 
 // const schedule = require('node-schedule')
@@ -19,6 +21,14 @@ const { default: mongoose } = require('mongoose')
 const gettrips = asyncHandler(async (req, res) => {
   
   const goals = await Goal.find({ user: req.user.id })
+  //const goals = await Goal.find({ text: "text by nirbhay 2" })
+  //console.log(goals)
+  res.status(200).json(goals)
+})
+
+const getMsg = asyncHandler(async (req, res) => {
+  
+  const goals = await Ledger.find({ user_id: req.user.id })
   //const goals = await Goal.find({ text: "text by nirbhay 2" })
   //console.log(goals)
   res.status(200).json(goals)
@@ -84,30 +94,45 @@ const ledgers = asyncHandler(async (req, res) => {
   
   
   const ledger = await Ledger.find()
-  //const goals = await Goal.find({ text: "text by nirbhay 2" })
-  //console.log(goals)
   res.status(200).json(ledger)
+})
+const paymentReq = asyncHandler(async (req, res) => {
+  
+  
+  const prs = await PR.find()
+  res.status(200).json(prs)
+})
+const payments = asyncHandler(async (req, res) => {
+  
+
+schedule.scheduleJob('*/2 * * * * *',async()=>{
+  const prs = await PR.find({"status" : "created"})
+  //console.log(prs)
+})
+
+
 })
 
 const podStatus = asyncHandler(async (req, res) => {
   //const pod = await POD.findById(req.params.id)
-  const { email,status } = req.body;
-  console.log(status)
+  const { status,amount } = req.body;
+  //console.log(status)
 if(status != "approved" && status != "rejected"){
   throw new Error('Please add a valid status')
 }
 const pods = await POD.findById(req.params.id)
 //console.log(pods)
 const trip = await Goal.findOne({_id:pods.trip_id}) 
-console.log(trip.user)
-
+//console.log(trip.user)
+//console.log(trip._id)
 // const check = await User.find({ _id: trip.user })
 // console.log(check)
 
-  const ledger = await Ledger.create({
-    user_id:trip.user,
-    Type:req.body.type,
-  })
+  if(status!= "rejected"){
+  var paymentRequest = await PR.create({
+    trip_id:trip._id,
+    amount:amount,
+  })}
 
   const updatedStatus = await POD.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -116,7 +141,7 @@ console.log(trip.user)
   res.send({
     success:true,
     updatedStatus,
-    ledger,
+    paymentRequest,
   })
   else 
   res.send({
@@ -137,16 +162,18 @@ console.log(trip.user)
 // @route   POST /api/goals
 // @access  Private
 const settrip = asyncHandler(async (req, res) => {
-  if (!req.body.text) {
+  const { email, text } = req.body
+  if (!email || !text) {
     //setting the status before throwing the error
     res.status(400)
     //express way of handling error
-    throw new Error('Please add a text field')
+    throw new Error('Please add all the fields')
   }
-
+  const userInfo = await User.findOne({ email })
+  console.log(userInfo)
   const goal = await Goal.create({
     text: req.body.text,
-    user: req.user.id,
+    user: userInfo.id,
   })
 
   res.status(200).json(goal)
@@ -170,10 +197,11 @@ const updatetrip = asyncHandler(async (req, res) => {
   }
 
   // Make sure the logged in user matches the goal user
-  if (goal.user.toString() !== req.user.id) {
-    res.status(401)
-    throw new Error('User not authorized')
-  }
+
+  // if (goal.user.toString() !== req.user.id) {
+  //   res.status(401)
+  //   throw new Error('User not authorized')
+  // }
 
   const updatedGoal = await Goal.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -200,10 +228,10 @@ const deletetrip = asyncHandler(async (req, res) => {
   }
 
   // Make sure the logged in user matches the goal user
-  if (goal.user.toString() !== req.user.id) {
-    res.status(401)
-    throw new Error('User not authorized')
-  }
+  // if (goal.user.toString() !== req.user.id) {
+  //   res.status(401)
+  //   throw new Error('User not authorized')
+  // }
 
   await goal.remove()
 
@@ -220,4 +248,7 @@ module.exports = {
   uploads,
   podStatus,
   ledgers,
+  paymentReq,
+  getMsg,
+  payments,
 }

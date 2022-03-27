@@ -2,6 +2,9 @@ const mongoose = require('mongoose')
 
 const ledgerSchema = mongoose.Schema(
   {
+    amount: {
+        type: Number,
+    },
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,

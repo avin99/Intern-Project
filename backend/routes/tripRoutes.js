@@ -23,17 +23,18 @@ const fileFilter = (req, file, cb) => {
 //this specifies a folder where multer will try to store all incoming files 
 const upload = multer({storage:storage , fileFilter:fileFilter})
 //receiving functions from controllers
-const {gettrips,settrip,updatetrip,deletetrip,startTrip,endTrip,uploads,podStatus,ledgers} = require('../controllers/tripController')
+const {gettrips,settrip,updatetrip,deletetrip,startTrip,endTrip,uploads,podStatus,ledgers,getMsg,paymentReq,payments} = require('../controllers/tripController')
 
-const { protect,isExecutive } = require('../middleware/authMiddleware')
+const { protect,isExecutive, isAdmin } = require('../middleware/authMiddleware')
 
-router.route('/').get(protect,gettrips).post(protect,settrip)
-router.route('/:id').delete(protect,deletetrip).put(protect,updatetrip)
-
+router.route('/').get(protect,gettrips).post(isAdmin,settrip)
+router.route('/:id').delete(isAdmin,deletetrip).put(isAdmin,updatetrip)
+router.get('/message',protect,getMsg)
 router.post('/start/:id',protect, startTrip)
 router.post('/end/:id',protect,upload.single("image"), endTrip)
 router.get('/uploads',isExecutive,uploads)
 router.put('/uploads/podStatus/:id',podStatus)
-router.get('/uploads/ledgers',isExecutive,ledgers)
+router.get('/uploads/paymentReq',isExecutive,paymentReq)
+router.get('/uploads/payments',payments)
 
 module.exports = router
