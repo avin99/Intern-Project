@@ -8,6 +8,7 @@ const POD = require('../models/podModel')
 const Ledger = require('../models/ledgerModel')
 const PR = require('../models/prModel')
 const schedule = require('node-schedule')
+const Card = require('../models/cardModel')
 const { default: mongoose } = require('mongoose')
 
 // const schedule = require('node-schedule')
@@ -162,21 +163,69 @@ const trip = await Goal.findOne({_id:pods.trip_id})
 // @route   POST /api/goals
 // @access  Private
 const settrip = asyncHandler(async (req, res) => {
-  const { email, text } = req.body
-  if (!email || !text) {
+  const { email, text, cardID } = req.body
+  if (!email || !text || !cardID) {
     //setting the status before throwing the error
     res.status(400)
     //express way of handling error
     throw new Error('Please add all the fields')
+  }
+  const checkCard = await Card.findById(cardID)
+  if(!checkCard){
+    res.status(400)
+    //express way of handling error
+    throw new Error('Invalid Card')
   }
   const userInfo = await User.findOne({ email })
   console.log(userInfo)
   const goal = await Goal.create({
     text: req.body.text,
     user: userInfo.id,
+    card:cardID,
+
   })
 
   res.status(200).json(goal)
+})
+
+const assignDriver = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id)
+
+  if (!user) {
+    res.status(400)
+    throw new Error('User not found')
+  }
+
+  // Check for user
+
+  const updatedGoal = await Goal.findByIdAndUpdate(req.params.id, {
+    new: true,
+  })
+
+  res.status(200).json(updatedGoal)
+})
+
+const rateCard = asyncHandler(async (req, res) => {
+  const { price, penalty, incentive } = req.body
+  if (!price || !penalty || !incentive) {
+    //setting the status before throwing the error
+    res.status(400)
+    //express way of handling error
+    throw new Error('Please add all the fields')
+  }
+  const cardExists = await User.findOne({ price,penalty,incentive })
+
+  // if (cardExists) {
+  //   res.status(400)
+  //   throw new Error('Card already exists')
+  // }
+  const ratecard = await Card.create({
+    price: price,
+    penalty: penalty,
+    incentive: incentive,
+  })
+
+  res.status(200).json(ratecard)
 })
 
 // @desc    Update goal
@@ -251,4 +300,6 @@ module.exports = {
   paymentReq,
   getMsg,
   payments,
+  rateCard,
+  assignDriver,
 }

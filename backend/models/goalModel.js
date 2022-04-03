@@ -11,6 +11,11 @@ const goalSchema = mongoose.Schema(
       type: String,
       required: [true, 'Please add a text value'],
     },
+    card: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: false,
+      ref: 'Card',
+    }
   },
   {
     //this will add updated at and created at field automatically
